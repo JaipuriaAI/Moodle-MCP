@@ -14,6 +14,8 @@ from sync import load_config, output_path
 def command(args):
     result = subprocess.run(args, capture_output=True, text=True)
     if result.returncode:
+        if args[:3] == ["gh", "pr", "create"]:
+            raise ValueError("Draft PR creation failed after branch push; inspect Actions PR creation permission and the published branch before retrying")
         raise ValueError(f"Command failed: {args[0]} {args[1]}")
     return result.stdout
 

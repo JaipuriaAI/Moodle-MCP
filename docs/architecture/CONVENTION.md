@@ -114,12 +114,15 @@ name only if known, and explain unavailable historical evidence as unknown.
    choice before creating a PR; do not merge, publish or delete branches as a
    side effect of documentation maintenance.
 
-These steps define semantic reconciliation by a cloud coding agent. The
-[automatic push workflow](automation.md) compiles merged-change evidence and
-captured handoffs, opens a draft PR, and marks affected views outdated for
-semantic review. It does not infer missing reasoning or run a language model.
-The interview-backend checkout is currently
-selected at `staging`; do not silently apply this pilot's `main` policy to it.
+These steps define semantic reconciliation by a coding agent. The
+[automatic push workflow](automation.md) launches a Codex documentation
+agent on GitHub Actions, then validates and opens its changes as a draft PR.
+The compiler prepares evidence; the agent reconciles architecture and Mermaid
+diagrams. Activation requires the GitHub Actions model API secret and PR
+permission. Application keys are not required. Human review remains pending.
+
+The owner's documentation workflow targets main. Follow the repository's
+ordinary branch policy for application changes.
 
 ## Validation and limits
 

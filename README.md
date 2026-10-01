@@ -15,30 +15,35 @@ flowchart LR
 ```
 
 <!-- c5-status:start -->
-**Documentation status:** source baseline prepared; automatic monitoring activates after this setup PR is merged. See [C5 evidence](docs/architecture/wiki/c5-latest.md).
+**Documentation status:** Baseline prepared. Automatic agent updates require the workflow on main, model authentication and PR permission. See the [latest C5 evidence](docs/architecture/wiki/c5-latest.md).
 <!-- c5-status:end -->
 
 Start with the [C4 views](docs/architecture/index.md), [operating constraints](docs/architecture/decisions/0002-operating-constraints.md), and [C5 convention](docs/architecture/CONVENTION.md). Read the constraints before changing ownership, retries, authentication, or service boundaries.
 
 ```mermaid
-flowchart LR
-  Human["Human intent and constraints"] --> Agent["Coding agent changes source"]
-  Agent --> Handoff["Sanitized handoff and actual checks"]
-  Agent --> Main["Merge to main"]
-  Main --> Monitor["Automatic source reconciliation"]
-  Handoff --> Monitor
-  Monitor --> Draft["Draft C5 PR and architecture status"]
-  Draft --> Review["Agent or maintainer reconciles C4 and decisions"]
+flowchart TB
+  goal["Human goal and constraints"] --> coding["Coding agent changes source"]
+  coding --> handoff["Record intent, decisions and actual checks"]
+  coding --> main["Merge to main"]
+  handoff --> prepare["Actions captures source evidence"]
+  main --> prepare
+  prepare --> agent["Codex documentation agent reads the diff"]
+  agent --> c4["Update C4 and Mermaid diagrams"]
+  agent --> c5["Reconcile C5 and recorded constraints"]
+  c4 --> check["Validate docs and diagrams in a fresh checkout"]
+  c5 --> check
+  check --> draft["Draft documentation PR"]
+  draft --> human["Human review and merge"]
 ```
 
-Documentation checks need only Python and Git:
+The [push workflow](docs/architecture/automation.md) launches a Codex agent
+to update C4 views, Mermaid diagrams and C5 after relevant main changes, then
+opens a validated draft PR mentioning @rajikapatel01 @mansigambhir-1313.
+Activation requires the GitHub Actions secret CODEX_DOCS_API_KEY and PR
+permission. No application keys are needed. Human review remains pending.
 
-```bash
-python -m unittest discover -s scripts/c5-documentation -p 'test_*.py'
-python docs/architecture/check_docs.py
-```
+See the [isolated documentation check commands](docs/architecture/automation.md#local-checks).
 
-The [push workflow](docs/architecture/automation.md) uses the built-in GitHub token and opens drafts mentioning @rajikapatel01 @mansigambhir-1313. It captures evidence and flags drift; semantic diagram updates still require review. No application or model keys are needed for documentation.
 
 ---
 

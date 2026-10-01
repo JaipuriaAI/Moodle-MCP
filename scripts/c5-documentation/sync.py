@@ -17,7 +17,7 @@ LOG = "docs/architecture/log.md"
 RAW_PREFIX = "docs/architecture/raw/automation/"
 BEGIN = "<!-- c5-status:start -->"
 END = "<!-- c5-status:end -->"
-GENERATED = {STATE, LATEST, LOG, "README.md"}
+GENERATED = {STATE, LATEST, LOG, "README.md", "docs/architecture/index.md"}
 CONFIG = "scripts/c5-documentation/config.json"
 
 
@@ -46,7 +46,7 @@ def git(repo, *args):
 
 
 def output_path(path):
-    return path in GENERATED or path.startswith((RAW_PREFIX, "docs/architecture/wiki/"))
+    return path in GENERATED or path.startswith((RAW_PREFIX, "docs/architecture/raw/agent-updates/", "docs/architecture/decisions/automation/", "docs/architecture/wiki/"))
 
 
 def handoff_path(path):
@@ -209,7 +209,7 @@ def prepare(repo, target, repository, run_url):
             f"Validation: documentation links, provenance headers, source drift and raw-evidence checks passed. {run_url}\n\n"
             "Opened as a draft per the requested review policy; no paid reviewer is invoked by this workflow. Application and live-integration checks were not run by this workflow.")
     return {"changed": True, "target": target, "branch": f"automation/c5-docs-{target[:12]}",
-            "title": "docs: automated C5 documentation update", "body": body, "reviewers": config["reviewers"]}
+            "title": "docs: automated C5 documentation update", "baseline": baseline, "affected": affected, "body": body, "reviewers": config["reviewers"]}
 
 
 def main():
