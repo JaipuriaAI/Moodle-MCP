@@ -1,26 +1,72 @@
 # Jaipuria Moodle Reports MCP
 
-A **faculty-facing, read-only Model Context Protocol (MCP) server** that makes the Jaipuria
+Gives faculty campus-scoped access to student marks, attendance, report analytics and existing reports. The create_report tool delegates generation to a separate report service; the MCP's own database queries remain read-only.
+
+```mermaid
+flowchart LR
+  Faculty["Faculty member"] --> Host["MCP host or faculty dashboard"]
+  Host -->|"OAuth or configured bearer"| MCP["FastMCP and campus grants"]
+  MCP -->|"Campus-scoped reads"| DB["Student report Supabase project"]
+  MCP -->|"Explicit create_report request"| Agent["moodle-agent report service"]
+  Agent -->|"Generate and cache report"| DB
+  Agent --> AI["Report-generation model"]
+  Agent -->|"Shareable report URL"| MCP
+  MCP --> Results["Structured results to host"]
+```
+
+<!-- c5-status:start -->
+**Documentation status:** source baseline prepared; automatic monitoring activates after this setup PR is merged. See [C5 evidence](docs/architecture/wiki/c5-latest.md).
+<!-- c5-status:end -->
+
+Start with the [C4 views](docs/architecture/index.md), [operating constraints](docs/architecture/decisions/0002-operating-constraints.md), and [C5 convention](docs/architecture/CONVENTION.md). Read the constraints before changing ownership, retries, authentication, or service boundaries.
+
+```mermaid
+flowchart LR
+  Human["Human intent and constraints"] --> Agent["Coding agent changes source"]
+  Agent --> Handoff["Sanitized handoff and actual checks"]
+  Agent --> Main["Merge to main"]
+  Main --> Monitor["Automatic source reconciliation"]
+  Handoff --> Monitor
+  Monitor --> Draft["Draft C5 PR and architecture status"]
+  Draft --> Review["Agent or maintainer reconciles C4 and decisions"]
+```
+
+Documentation checks need only Python and Git:
+
+```bash
+python -m unittest discover -s scripts/c5-documentation -p 'test_*.py'
+python docs/architecture/check_docs.py
+```
+
+The [push workflow](docs/architecture/automation.md) uses the built-in GitHub token and opens drafts mentioning @rajikapatel01 @mansigambhir-1313. It captures evidence and flags drift; semantic diagram updates still require review. No application or model keys are needed for documentation.
+
+---
+
+## Existing project guide
+
+# Jaipuria Moodle Reports MCP
+
+A **faculty-facing Model Context Protocol (MCP) server** that makes the Jaipuria
 `student-report-system` data queryable in plain language. Connect it to any MCP host (a dashboard,
 Claude.ai, ChatGPT, Claude CLI) and ask about student marks, attendance, subjects, cohort
 analytics, longitudinal trends, at-risk students, and report accuracy — every ingested student,
 scoped to the caller's campuses.
 
-**Live:** `https://moodle-mcp-f6do.onrender.com/mcp` · **Health:** `/health` · **Tools:** 27
-**Repo:** `github.com/mansigambhir-1313/Moodle-MCP` · **Owner:** Jaipuria AI Labs
+**Live:** `https://moodle-mcp-f6do.onrender.com/mcp` · **Health:** `/health` · **Tools:** structured reads plus delegated report generation
+**Repo:** `github.com/JaipuriaAI/Moodle-MCP` · **Owner:** Jaipuria AI Labs
 
 ---
 
 ## Overview
 
-The pipeline in [`moodle-agent`](../moodle-agent) ingests Moodle data, computes analytics, and
+The pipeline in `moodle-agent` ingests Moodle data, computes analytics, and
 generates validated student reports into a Supabase project. This MCP is the **read side** of that
 project for faculty and the programme office: it exposes the raw data and the pipeline's outputs as
-~27 structured, auto-approvable tools that a host LLM routes on.
+structured read tools plus the explicit create_report generation action that a host LLM routes on.
 
 It is **data-first** — the primary surface is the raw gradebook and attendance (queryable for
 *every* student, report or not); the generated reports and their two-scheme accuracy scores are a
-secondary layer. It is **read-only forever**: no tool writes, ingests, or emails.
+secondary layer. Its own database queries are read-only. `create_report` delegates generation and cache writes to the separate report service; no tool ingests or emails.
 
 Design lineage: the [Rehearsal MCP](https://github.com/JaipuriaAILabs/rehearsal-mcp) patterns
 (bounded caches, routing-contract docstrings, response budgets, secret stripping, graceful
@@ -50,9 +96,9 @@ faculty model**.
 
 ---
 
-## Tools (27)
+## Tools
 
-Every tool is `SELECT`-only, campus-scoped to the caller's token, bounded, and carries a
+Read tools are `SELECT`-only; `create_report` performs delegated generation. Both paths are campus-scoped, bounded, and carry a
 `WHAT / USE WHEN / DO NOT USE / RETURNS` routing docstring.
 
 ### Students — raw data (primary)
@@ -98,7 +144,8 @@ Every tool is `SELECT`-only, campus-scoped to the caller's token, bounded, and c
 | `get_report_accuracy` | One report's two-scheme accuracy score + interpretation |
 | `accuracy_overview` | Cohort accuracy — mean %, verified / drift / flagged |
 | `flagged_reports` | The human-review queue (validation-flagged reports) |
-| `get_student_report` | The generated narrative report for a student |
+| `get_student_report` | The existing generated narrative report for a student |
+| `create_report` | Generate or refresh through the report service and return its shareable link; not a read-only action |
 | `report_pipeline_status` | Ready / held / failed counts for a scope |
 | `whoami` | The caller's principal and allowed campuses |
 
@@ -175,8 +222,7 @@ python3 -c "import secrets; print('mcp_'+secrets.token_urlsafe(24))"   # one per
   "mcp_...office": {"name": "Programme Office",  "campuses": null}      // null = all campuses
 }
 ```
-The Supabase **service-role key stays server-side** and is never handed to the host. There is no
-write path in the codebase.
+The database credential stays server-side. Prefer the configured reporting_readonly role; a full service_role fallback can bypass RLS. `create_report` delegates its write path to the report service after checking the caller's campus grant.
 
 ---
 
@@ -189,14 +235,14 @@ MCP host (dashboard / Claude / ChatGPT)
 server.py (FastMCP /mcp, /health)
   get_authenticated_service()  → verify token → MoodleService(allowed_campuses)
         │
-  tools/* (6 modules, 27 tools) — each: Params model + _impl(svc,…) + register()
+  tools/* (read modules plus create_report) — each: Params model + _impl(svc,…) + register()
         │  every query .in_("campus", allowed) ; strip_secrets ; response budgets
         ▼
 Supabase (read service role) — students · courses · enrolments · marks ·
                                attendance_sessions · student_reports · report_accuracy
 ```
 
-Full design: [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md).
+Current design: [C4 views and decisions](docs/architecture/index.md). The [older design guide](docs/ARCHITECTURE.md) is historical context.
 
 ### Key files
 | Path | Purpose |
@@ -284,7 +330,7 @@ a JWT with `{"role":"reporting_readonly"}` signed with the project JWT secret an
 PostgREST then runs every query as a role that **physically cannot write**. The server logs a warning
 at boot whenever it detects a full `service_role` key still in use.
 
-**Data invariants:** read-only forever · campus-scope every query · uniform `{"found": false}`
+**Data invariants:** MCP database queries remain read-only; generation is delegated · campus-scope every query · uniform `{"found": false}`
 misses (no existence oracle) · explicit field projections + secret stripping (run ids / storage
 keys / hashes / emails never leave the server) · service-role key server-side only · response
 budgets + paging · bounded caches only (OOM-safe). Detail in `docs/ARCHITECTURE.md` §3, §11.

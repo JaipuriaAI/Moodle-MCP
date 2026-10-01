@@ -2,3 +2,10 @@
 __pycache__/
 *.pyc
 .venv/
+
+# Documentation monitoring tooling
+/scripts/c5-documentation/__pycache__/
+!/docs/architecture/check_docs.py
+!/docs/architecture/automation-state.json
+!/scripts/c5-documentation/config.json
+!/skills-lock.json
