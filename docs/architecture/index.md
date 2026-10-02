@@ -16,3 +16,5 @@ Start with the [visual README](../../README.md), then the [convention](CONVENTIO
 Pinned C4, ADR and Grounded Vault skills are installed under `.agents/skills/`. The repository convention corrects inconsistent skill examples: standard C4 level four is code; deployment is separate; libraries are not deployable containers.
 
 - [Main-push documentation agent design](decisions/0003-main-push-documentation-agent.md)
+
+- [Observed semantic-agent automation reconciliation](decisions/automation/ee905a43042c174e0ab8b9fe5fb9290850c50541-documentation-agent.md): supersedes the earlier compiler-only automation clause; human review pending.
