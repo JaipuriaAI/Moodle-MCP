@@ -1,3 +1,5 @@
+> Historical design guide: this predates delegated create_report generation. Use the [current C4/C5 index](architecture/index.md) for active boundaries; read-only-forever and old tool-count statements below describe the earlier design.
+
 # Jaipuria Moodle MCP — Technical Architecture
 
 > Deep-dive reference for the **faculty-facing, read-only** Moodle Reports MCP server.

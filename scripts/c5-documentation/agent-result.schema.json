@@ -1,0 +1,26 @@
+{
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "summary",
+    "reviewed_views",
+    "remaining_gaps"
+  ],
+  "properties": {
+    "summary": {
+      "type": "string"
+    },
+    "reviewed_views": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "remaining_gaps": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    }
+  }
+}

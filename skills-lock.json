@@ -1,0 +1,26 @@
+{
+  "version": 1,
+  "skills": {
+    "c4-architecture": {
+      "source": "softaworks/agent-toolkit",
+      "ref": "3027f20f3181758385a1bb8c022d4041dfb4de84",
+      "sourceType": "github",
+      "skillPath": "skills/c4-architecture/SKILL.md",
+      "computedHash": "f35f57420c35f2e8413e1e22934ca3950cae8286499f6fbe978cff604c35cfcd"
+    },
+    "architecture-decision-records": {
+      "source": "wshobson/agents",
+      "ref": "156b7a5e7a8b93642628a339ee4039c925b34c7f",
+      "sourceType": "github",
+      "skillPath": "plugins/documentation-generation/skills/architecture-decision-records/SKILL.md",
+      "computedHash": "bffeafc71791924809ca9e24bfe3f18e87b2a060dbe5484468b4ff06c8e693b2"
+    },
+    "grounded-vault": {
+      "source": "wshobson/agents",
+      "ref": "156b7a5e7a8b93642628a339ee4039c925b34c7f",
+      "sourceType": "github",
+      "skillPath": "plugins/documentation-standards/skills/grounded-vault/SKILL.md",
+      "computedHash": "1949093e5ae4a23627a0406f237c8b5f116773ba966a03503a1b0241a391821d"
+    }
+  }
+}
