@@ -15,7 +15,7 @@ flowchart LR
 ```
 
 <!-- c5-status:start -->
-**Documentation status:** Baseline prepared. Automatic agent updates require the workflow on main, model authentication and PR permission. See the [latest C5 evidence](docs/architecture/wiki/c5-latest.md).
+**Documentation status:** C4 views remain Current; C5 source review is complete. Human review and workflow publication remain pending. See the [latest C5 evidence](docs/architecture/wiki/c5-latest.md).
 <!-- c5-status:end -->
 
 Start with the [C4 views](docs/architecture/index.md), [operating constraints](docs/architecture/decisions/0002-operating-constraints.md), and [C5 convention](docs/architecture/CONVENTION.md). Read the constraints before changing ownership, retries, authentication, or service boundaries.
